@@ -4,6 +4,7 @@
 		"activities": [
 			{
 				"name": "Copy data1",
+				"description": "changing the description for demo purpose for ci cd",
 				"type": "Copy",
 				"dependsOn": [],
 				"policy": {
