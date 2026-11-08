@@ -106,7 +106,7 @@
 				"typeProperties": {
 					"variableName": "email_subject",
 					"value": {
-						"value": "@{pipeline().globalParameters.env}| @{if(greater(activity('check overall failed count').output.firstRow.ct, 0), 'FAILED', 'SUCCESS' )} | CARESYNC MASTER RUN",
+						"value": "@{pipeline().globalParameters.env}| @{if(greater(activity('check overall failed count').output.firstRow.count, 0), 'FAILED', 'SUCCESS' )} | CARESYNC MASTER RUN",
 						"type": "Expression"
 					}
 				}
@@ -148,7 +148,41 @@
 				"typeProperties": {
 					"variableName": "logic_apps_body",
 					"value": {
-						"value": "{\n  \"subject\": \"@{variables('email_subject')}\",\n  \"email_recipients\": \"@{pipeline().globalParameters.email_recipient}\",\n  \"body_header\": \"@{variables('body_header')}\",\n  \"body_footer\": \"@{variables('body_footer')}\",\n  \"status_table\": activity('Read all table status').output.value\n}",
+						"value": "{\n  \"subject\": \"@{variables('email_subject')}\",\n  \"email_recipients\": \"@{pipeline().globalParameters.email_recipient}\",\n  \"body_header\": \"@{variables('body_header')}\",\n  \"body_footer\": \"@{variables('body_footer')}\",\n  \"status_table\": @{activity('Read all table status').output.value}\n}",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Send Email",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Prepare logic apps body",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/json"
+					},
+					"url": {
+						"value": "@pipeline().globalParameters.logic_apps_url",
+						"type": "Expression"
+					},
+					"body": {
+						"value": "@variables('logic_apps_body')",
 						"type": "Expression"
 					}
 				}
